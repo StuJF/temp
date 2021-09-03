@@ -129,7 +129,7 @@ for ic = 1:3
     end
     Cbar(:,ic) = ncolor';
 end
-if size(Cbar,1)>cnum
+while size(Cbar,1)>cnum
     Cbar(round(end/2),:)=[];
 end
 end

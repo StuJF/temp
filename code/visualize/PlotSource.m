@@ -27,6 +27,10 @@ if nargin<3||isempty(BrainModel)
         error('No brain model found');
     end
 end
+if nargin<1
+    SourceData = [];
+end
+
 loc=BrainModel.Vertices;tri=BrainModel.Faces;
 
 % default setting
@@ -34,7 +38,7 @@ smooth = [];
 thresh = 0;
 roiIdx = 1:length(loc);
 hemisphere = [];
-ax2plot = [];
+ax2plot = gca;
 CLim = [0,1];
 colorMap = CBar;
 cortexcolor=[.9 .7 .7];
@@ -45,6 +49,12 @@ if nargs > 3
         Param = lower(varargin{i});
         Value = varargin{i+1};
         switch Param
+            case 'smooth'
+                smooth = Value;
+                if Value<=0 || Value>100
+                   warning('smooth must be in (0,100]');
+                   smooth = 30;
+                end
             case 'cortexcolor'
                 cortexcolor = Value;
                 if size(Value,2)~=3
@@ -98,7 +108,7 @@ handles.hp=patch(ax2plot,'vertices',loc,'faces',tri,...
     'BackfaceLighting','lit','AmbientStrength',0.5,'SpecularExponent',1,...
     'SpecularColorReflectance',0.5,'EdgeLighting','gouraud');
 material dull
-camlight('headlight','infinite');
+% camlight('headlight','infinite');
 set(handles.axes,'Xcolor',[1 1 1],'ycolor',[1 1 1],'zcolor',[1 1 1],'CameraPosition', [0 100 0],'CameraViewAngle',6);
 view([ -90 90 ])
 axis equal
@@ -153,4 +163,20 @@ function cbars = CBar
 cbars = [1 0.3 0;1 1 0;1 1 1];
 cbars = lineInterp(cbars,256,8);
 cbars = cbars(end:-1:1,:);
+end
+
+function Cbar = lineInterp(cbar,cnum,pernum)
+np = size(cbar,1);
+nump = max(round(cnum/(np-1)),pernum);
+for ic = 1:3
+    tcolor = cbar(:,ic);
+    ncolor = [];
+    for itc = 1:np-1
+        ncolor = [ncolor,linspace(tcolor(itc),tcolor(itc+1),nump)];
+    end
+    Cbar(:,ic) = ncolor';
+end
+while size(Cbar,1)>cnum
+    Cbar(round(end/2),:)=[];
+end
 end
